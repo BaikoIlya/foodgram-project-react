@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.db.models.expressions import Exists, OuterRef, Value
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -243,3 +244,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    @action(
+        detail=False,
+        methods=['get'],
+    )
+    def download_shopping_cart(self, request):
+        shopping_cart = request.user.shopping_list.recipe.values(
+            'ingredients__name',
+            'ingredients__measurement_unit'
+        ).annotate(amount=Sum('recipe__amount')).order_by('ingredients__name')
+        if shopping_cart:
+            with open(f'{request.user} shopping_cart.txt', 'w+') as file:
+                for index, recipe_ingredient in enumerate(
+                        shopping_cart,
+                        start=1
+                ):
+                    file.write(
+                        f'{index}.) '
+                        f'{recipe_ingredient["ingredients__name"]} '
+                        f'{recipe_ingredient["amount"]} '
+                        f'{recipe_ingredient["ingredients__measurement_unit"]}'
+                        f'\n'
+                    )
+        return FileResponse(
+            as_attachment=True,
+            filename=f'{request.user} shopping_cart.txt'
+        )
