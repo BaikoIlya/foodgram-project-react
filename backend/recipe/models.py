@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils.html import format_html
-
 
 User = get_user_model()
 
@@ -26,12 +25,6 @@ class Tag(models.Model):
         verbose_name = 'Tag'
         verbose_name_plural = 'Tags'
 
-    # def colored_name(self):
-    #     return format_html(
-    #         '<span style="color: #{};">{}</span>',
-    #         self.hexcolor,
-    #     )
-
     def __str__(self):
         return self.name
 
@@ -53,14 +46,17 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     name = models.CharField(
         max_length=200,
-        verbose_name='name of recipe'
+        verbose_name='name of recipe',
     )
     image = models.ImageField(
         'Изображение рецепта',
         upload_to='static/recipe/',
     )
     text = models.TextField()
-    cooking_time = models.PositiveIntegerField()
+    cooking_time = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), ]
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -91,7 +87,10 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         related_name='ingredient',
     )
-    amount = models.PositiveIntegerField(default=1)
+    amount = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), ]
+    )
 
 
 class Favorite(models.Model):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Tag, Ingredient, Recipe, RecipeIngredient
+from .models import Ingredient, Recipe, RecipeIngredient, Tag
 
 EMPTY_MSG = '-пусто-'
 
@@ -15,11 +15,9 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = (
-        'id', 'name', 'measurement_unit'
-    )
-    search_fields = (
-        'name', 'measurement_unit',)
+    list_display = ('id', 'name', 'measurement_unit',)
+    search_fields = ('name', 'measurement_unit',)
+    list_filter = ('name', 'measurement_unit',)
     empty_value_display = EMPTY_MSG
 
 
@@ -37,7 +35,7 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = (
         'name', 'cooking_time',
         'author__email', 'ingredients__name')
-    list_filter = ('pub_date', 'tags',)
+    list_filter = ('author', 'name', 'pub_date', 'tags',)
     inlines = (RecipeIngredientAdmin,)
     empty_value_display = EMPTY_MSG
 
