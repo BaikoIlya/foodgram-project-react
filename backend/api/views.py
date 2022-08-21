@@ -239,7 +239,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
-        print('пришёл на удаление.')
         return RecipeAddAndEditSerializer
 
     def perform_create(self, serializer):
