@@ -1,3 +1,5 @@
+import tempfile
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import models
@@ -29,7 +31,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,)
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
+        if self.request.method in SAFE_METHODS:
             return UserCreateSerializer
         return UserListSerializer
 
@@ -61,14 +63,12 @@ class UserViewSet(viewsets.ModelViewSet):
                 'request': request
             }
         )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {'message': 'Пароль изменен!'},
-                status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(
-            {'error': 'Введите верные данные!'},
-            status=status.HTTP_400_BAD_REQUEST)
+            {'message': 'Пароль изменен!'},
+            status=status.HTTP_201_CREATED)
+
 
     @action(
         detail=False,
@@ -115,30 +115,6 @@ class AddAndDeleteFollow(generics.CreateAPIView, generics.DestroyAPIView):
         user = get_object_or_404(User, id=user_id)
         self.check_object_permissions(self.request, user)
         return user
-
-    def create(self, request, *args, **kwargs):
-        user_id = self.kwargs['user_id']
-        user = get_object_or_404(User, id=user_id)
-        instance = user
-        if request.user.id == instance.id:
-            return Response(
-                'Подписаться на самого себя нельзя!',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if Follow.objects.filter(
-                follower=request.user,
-                following=instance
-        ).exists():
-            return Response(
-                'Вы уже подписаны на этого пользователя!',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        follow = Follow.objects.create(
-            follower=request.user,
-            following=instance
-        )
-        serializer = self.get_serializer(follow)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_destroy(self, instance):
         self.request.user.follower.filter(following=instance).delete()
@@ -254,8 +230,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredients__name',
             'ingredients__measurement_unit'
         ).annotate(amount=Sum('recipe__amount')).order_by('ingredients__name')
+        fd, path = tempfile.mkstemp(suffix='.txt', text=True)
         if shopping_cart:
-            with open(f'{request.user} shopping_cart.txt', 'w+') as file:
+            with open(path, 'w+') as file:
                 for index, recipe_ingredient in enumerate(
                         shopping_cart,
                         start=1
@@ -269,5 +246,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     )
         return FileResponse(
             as_attachment=True,
-            filename=f'{request.user} shopping_cart.txt'
+            filename=path
         )
