@@ -185,6 +185,13 @@ class RecipeAddAndEditSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
 
+    def validate_cooking_time(self, cooking_time):
+        if int(cooking_time) < 1:
+            raise serializers.ValidationError(
+                'Время приготовления минимум 1 минута!'
+            )
+        return cooking_time
+
     def validate_tags(self, tags):
         if not tags:
             raise serializers.ValidationError('Добавьте тэг для рецепта')
