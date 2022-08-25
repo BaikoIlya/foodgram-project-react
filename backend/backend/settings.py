@@ -25,7 +25,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='408x*wdsc6dv0dz&vcc0e=ko5lp&0jc#la
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['178.154.192.231', '127.0.0.1', ]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
