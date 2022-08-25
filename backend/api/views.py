@@ -7,13 +7,11 @@ from django.db.models import Count, Sum
 from django.db.models.expressions import Exists, OuterRef, Value
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from recipe.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
-
-from recipe.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from user.models import Follow
 
 from .filters import RecipeFilter
 from .permission import IsAdminOrReadOnly, IsAuthorPermission
@@ -68,7 +66,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(
             {'message': 'Пароль изменен!'},
             status=status.HTTP_201_CREATED)
-
 
     @action(
         detail=False,
@@ -220,7 +217,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
 
     @action(
         detail=False,
