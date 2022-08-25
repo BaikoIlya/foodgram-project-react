@@ -244,6 +244,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                         f'\n'
                     )
         return FileResponse(
+            fd,
             as_attachment=True,
             filename=path
         )
