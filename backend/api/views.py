@@ -32,8 +32,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
-            return UserCreateSerializer
-        return UserListSerializer
+            return UserListSerializer
+        return UserCreateSerializer
 
     def perform_create(self, serializer):
         password = make_password(self.request.data['password'])
