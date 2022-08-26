@@ -7,11 +7,13 @@ from django.db.models import Count, Sum
 from django.db.models.expressions import Exists, OuterRef, Value
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from recipe.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
+
+from recipe.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from user.models import Subscribe
 
 from .filters import IngredientFilter, RecipeFilter
 from .permission import IsAdminOrReadOnly, IsAuthorPermission
@@ -74,22 +76,15 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def subscriptions(self, request):
-        queryset = self.request.user.follower.select_related(
-            'following'
-        ).prefetch_related(
-            'following__recipes'
-        ).annotate(
-            recipes_count=Count('following__recipes'),
-            is_subscribed=Value(
-                value=True,
-                output_field=models.BooleanField()),
-        )
+        user = request.user
+        queryset = Subscribe.objects.filter(follower=user)
+        pages = self.paginate_queryset(queryset)
         serializer = FollowsSerializer(
-            queryset,
+            pages,
             many=True,
             context={'request': request}
         )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.get_paginated_response(serializer.data)
 
 
 class AddAndDeleteFollow(generics.CreateAPIView, generics.DestroyAPIView):
