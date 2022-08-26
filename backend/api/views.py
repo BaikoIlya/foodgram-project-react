@@ -8,12 +8,12 @@ from django.db.models.expressions import Exists, OuterRef, Value
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from recipe.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from rest_framework import filters, generics, permissions, status, viewsets
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 
-from .filters import RecipeFilter
+from .filters import IngredientFilter, RecipeFilter
 from .permission import IsAdminOrReadOnly, IsAuthorPermission
 from .serializers import (FollowsSerializer, IngredientSerializer,
                           RecipeAddAndEditSerializer, RecipeInfoSerializer,
@@ -179,8 +179,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = None
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
