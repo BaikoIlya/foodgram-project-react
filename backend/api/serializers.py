@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from drf_base64.fields import Base64ImageField
 from recipe.models import Ingredient, Recipe, RecipeIngredient, Tag
 from rest_framework import serializers
-from user.models import Follow
+from user.models import Subscribe
 
 User = get_user_model()
 
@@ -280,7 +280,7 @@ class FollowsSerializer(serializers.ModelSerializer):
     recipes_count = serializers.IntegerField(read_only=True)
 
     class Meta:
-        model = Follow
+        model = Subscribe
         fields = (
             'id',
             'email',
@@ -311,7 +311,7 @@ class FollowsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Подписаться на самого себя нельзя!'
             )
-        if Follow.objects.filter(
+        if Subscribe.objects.filter(
                 follower=follower,
                 following=following
         ).exists():
@@ -324,7 +324,7 @@ class FollowsSerializer(serializers.ModelSerializer):
         request = self.context['request']
         user_id = self.context['view'].kwargs.get('user_id')
         following = get_object_or_404(User, pk=user_id)
-        follow = Follow.objects.create(
+        follow = Subscribe.objects.create(
             follower=request.user,
             following=following
         )
