@@ -1,11 +1,9 @@
-import tempfile
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import models
 from django.db.models import Count, Sum
 from django.db.models.expressions import Exists, OuterRef, Value
-from django.http import FileResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from recipe.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from rest_framework import generics, permissions, status, viewsets
@@ -222,22 +220,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredients__name',
             'ingredients__measurement_unit'
         ).annotate(amount=Sum('recipe__amount')).order_by('ingredients__name')
-        fd, path = tempfile.mkstemp(suffix='.txt', text=True)
+        content = 'Cписок покупок пуст.'
         if shopping_cart:
-            with open(path, 'w+') as file:
-                for index, recipe_ingredient in enumerate(
-                        shopping_cart,
-                        start=1
-                ):
-                    file.write(
-                        f'{index}.) '
-                        f'{recipe_ingredient["ingredients__name"]} '
-                        f'{recipe_ingredient["amount"]} '
-                        f'{recipe_ingredient["ingredients__measurement_unit"]}'
-                        f'\n'
-                    )
-        return FileResponse(
-            fd,
-            as_attachment=True,
-            filename=path
+            content = ''
+            for index, recipe_ingredient in enumerate(
+                    shopping_cart,
+                    start=1
+            ):
+                content += (
+                    f'{index}.) '
+                    f'{recipe_ingredient["ingredients__name"]} '
+                    f'{recipe_ingredient["amount"]} '
+                    f'{recipe_ingredient["ingredients__measurement_unit"]}'
+                    f'\n'
+                )
+        return HttpResponse(
+            content,
+            content_type='text/plain'
         )
