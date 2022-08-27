@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Ingredient, Recipe, RecipeIngredient, Tag
+from .models import Ingredient, Recipe, RecipeIngredient, Tag, Favorite, ShoppingCart
 
 EMPTY_MSG = '-пусто-'
 
@@ -31,11 +31,11 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id', 'author', 'name', 'text',
         'cooking_time', 'get_tags', 'get_ingredients',
-        'pub_date',)
+        'pub_date', 'get_favorite_count')
     search_fields = (
         'name', 'cooking_time',
         'author__email', 'ingredients__name')
-    list_filter = ('author', 'name', 'pub_date', 'tags',)
+    list_filter = ('author', 'name', 'tags',)
     inlines = (RecipeIngredientAdmin,)
     empty_value_display = EMPTY_MSG
 
@@ -50,3 +50,10 @@ class RecipeAdmin(admin.ModelAdmin):
             for item in obj.recipe.values(
                 'ingredient__name',
                 'amount', 'ingredient__measurement_unit')])
+
+    def get_favorite_count(self, obj):
+        return obj.favorite_recipe.count()
+
+
+admin.site.register(Favorite)
+admin.site.register(ShoppingCart)
