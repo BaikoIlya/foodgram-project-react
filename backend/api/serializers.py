@@ -203,6 +203,10 @@ class RecipeAddAndEditSerializer(serializers.ModelSerializer):
             )
         ingredients_add = []
         for elem in ingredients:
+            if int(elem.get('amount')) < 1:
+                raise serializers.ValidationError(
+                    'Количество ингредиента должно быть больше 1!'
+                )
             ingredient = get_object_or_404(Ingredient, id=elem['id'])
             if ingredient in ingredients_add:
                 raise serializers.ValidationError(

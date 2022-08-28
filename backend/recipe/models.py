@@ -76,6 +76,9 @@ class Recipe(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        ordering = ('-pub_date', )
+
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
