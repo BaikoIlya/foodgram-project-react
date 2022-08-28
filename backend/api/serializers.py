@@ -301,9 +301,9 @@ class FollowsSerializer(serializers.ModelSerializer):
         requests = self.context.get('request')
         limit = requests.GET.get('recipes_limit')
         if limit:
-            recipes = obj.following.recipes.all()[:int(limit)]
+            recipes = obj.following.recipe.all()[:int(limit)]
         else:
-            recipes = obj.following.recipes.all()
+            recipes = obj.following.recipe.all()
         return RecipeInfoSerializer(recipes, many=True).data
 
     def validate(self, data):

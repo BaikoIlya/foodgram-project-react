@@ -10,7 +10,6 @@ from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
-from user.models import Subscribe
 
 from .filters import IngredientFilter, RecipeFilter
 from .permission import IsAdminOrReadOnly, IsAuthorPermission
@@ -73,8 +72,16 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def subscriptions(self, request):
-        user = request.user
-        queryset = Subscribe.objects.filter(follower=user)
+        queryset = self.request.user.follower.select_related(
+            'following'
+        ).prefetch_related(
+            'following__recipe'
+        ).annotate(
+            recipes_count=Count('following__recipe'),
+            is_subscribed=Value(
+                value=True,
+                output_field=models.BooleanField()),
+        )
         pages = self.paginate_queryset(queryset)
         serializer = FollowsSerializer(
             pages,
@@ -91,9 +98,9 @@ class AddAndDeleteFollow(generics.CreateAPIView, generics.DestroyAPIView):
         return self.request.user.follower.select_related(
             'following'
         ).prefetch_related(
-            'following__recipes'
+            'following__recipe'
         ).annotate(
-            recipes_count=Count('following__recipes'),
+            recipes_count=Count('following__recipe'),
             is_subscribed=Value(
                 value=True,
                 output_field=models.BooleanField()),
